@@ -23,7 +23,6 @@ The following interactive endpoints were cataloged using Burp Suite Proxy and Si
 | `/rest/products/search` | `GET` | `q` | URL Query String | SQL Injection (Data Extraction) |
 | `/rest/user/login` | `POST` | `email`, `password` | JSON Body | SQL Injection (Auth Bypass) |
 | `/api/Feedbacks` | `POST` | `comment`, `rating` | JSON Body | Stored XSS / SQLi |
-| `/rest/basket/:id` | `GET` | `id` (Path Parameter) | Numeric / URL | IDOR / Broken Access Control |
 
 ---
 
