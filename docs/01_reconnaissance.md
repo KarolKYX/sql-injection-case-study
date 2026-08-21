@@ -5,29 +5,59 @@ Identify exposed endpoints, user-controlled input vectors, and underlying techno
 
 ---
 
-## 2. Technology Stack Fingerprinting
-Inspecting HTTP response headers, error messages, and frontend assets, the following architecture was identified:
+## 2. Attack Surface Identification (Endpoints & Parameters)
+Network traffic generated during the manual walkthrough of key application workflows was captured using Burp Suite Community. Request analysis revealed the following interactive API endpoints accepting user-controlled input:
 
-* **Frontend:** Angular SPA (Single Page Application)
-* **Backend Framework:** Node.js / Express
-* **Database Engine:** SQLite (identified via SQL dialect error patterns)
-* **Authentication Mechanism:** JSON Web Tokens (JWT) / Bearer Auth
-
----
-
-## 3. Attack Surface Identification (Endpoints & Parameters)
-The following interactive endpoints were cataloged using Burp Suite Proxy and Site Map analysis:
-
-| Endpoint | HTTP Method | Parameter(s) | Input Type | Potential Vulnerability Vector |
+| Endpoint | HTTP Method | Parameter(s) | Input Type | Business Function |
 | :--- | :--- | :--- | :--- | :--- |
-| `/rest/products/search` | `GET` | `q` | URL Query String | SQL Injection (Data Extraction) |
-| `/rest/user/login` | `POST` | `email`, `password` | JSON Body | SQL Injection (Auth Bypass) |
-| `/api/Feedbacks` | `POST` | `comment`, `rating` | JSON Body | Stored XSS / SQLi |
+| `/rest/products/search` | `GET` | `q` | URL Query String | Product catalog search engine |
+| `/rest/user/login` | `POST` | `email`, `password` | JSON Body | User authentication & session generation |
+| `/api/Feedbacks` | `POST` | `comment`, `rating` | JSON Body | Customer review submissions |
+
+![Captured HTTP History](../images/01_proxy_history.png)
 
 ---
 
-## 4. Prioritization for Deep-Dive Testing
-Based on data flow analysis, two high-risk entry points were prioritized for vulnerability fuzzing:
+## 3. Technology Fingerprinting & Evidence
 
-1. **`POST /rest/user/login` (`email` field):** Directly handles identity verification and session creation.
-2. **`GET /rest/products/search` (`q` field):** Reflects database records directly to the client interface, making it a prime candidate for UNION-based data extraction.
+Target architecture components were identified through response header inspection, active error triggering (fuzzing), and return payload analysis.
+
+### A. Database Engine: SQLite
+* **Detection Method:** Injected an inaccurate SQL keyword (`SELECT'`) into the search parameter (`GET /rest/products/search?q=SELECT'`).
+* **Evidence:** The application leaked raw database exception messages directly in the response:
+  ```json
+  "message": "SQLITE_ERROR: near \"SELECT\": syntax error"
+  ```
+* **Disclosed Query Structure:**
+  ```sql
+  SELECT * FROM Products WHERE ((name LIKE '%SELECT%' OR description LIKE '%SELECT%') AND deletedAt IS NULL) ORDER BY name
+  ```
+
+![SQLite Error PoC](../images/02_sqlite_error_poc.png)
+
+---
+
+### B. Backend Environment: Node.js / Express
+* **Detection Method:** Sent a malformed JSON payload to the `/rest/user/login` endpoint to trigger an unhandled internal exception (`500 Internal Server Error`).
+* **Evidence:** The leaked server call stack (*stack trace*) exposed internal filesystem paths referencing the Node.js runtime and Express framework modules:
+  * `/juice-shop/node_modules/express/`
+  * `/juice-shop/node_modules/body-parser/`
+
+![Backend Stack Trace PoC](../images/03_backend_enviroment.png)
+
+---
+
+### C. Authentication Protocol: JSON Web Tokens (JWT)
+* **Detection Method:** Inspected a successful authentication response (`200 OK`).
+* **Evidence:** The server issues a stateless identity token following the standard three-segment base64-encoded JWT structure prefixed with `eyJ...`:
+  ```json
+  "token": "eyJ0eXAiOiJKV1QiLCJ..."
+  ```
+
+![JWT Evidence PoC](../images/04_token_poc.png)
+
+---
+
+## 4. Prioritization for Phase 2 (Exploitation)
+1. **Catalog Search (`/rest/products/search?q=`):** Directly embeds input into raw SQL queries without sanitization, making it vulnerable to **UNION-based SQL Injection** for full database extraction.
+2. **User Authentication (`/rest/user/login`):** Processes authentication logic susceptible to **Authentication Bypass** attacks to gain unauthorized administrative privileges.
