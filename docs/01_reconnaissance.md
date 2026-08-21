@@ -6,7 +6,7 @@ Identify exposed endpoints, user-controlled input vectors, and underlying techno
 ---
 
 ## 2. Technology Stack Fingerprinting
-By inspecting HTTP response headers, error messages, and frontend assets, the following architecture was identified:
+Inspecting HTTP response headers, error messages, and frontend assets, the following architecture was identified:
 
 * **Frontend:** Angular SPA (Single Page Application)
 * **Backend Framework:** Node.js / Express
