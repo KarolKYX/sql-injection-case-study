@@ -29,7 +29,7 @@ The product search query directly concatenates user input. By matching the origi
   ```json
   {
     "email": "' OR 1=1--",
-    "password": "x"
+    "password": "Password"
   }
   ```
 
