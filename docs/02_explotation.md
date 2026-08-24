@@ -102,13 +102,21 @@ The login endpoint concatenates user input directly into the SQL query without p
 
 ---
 
-## 4. [A] Availability: Service Disruption Analysis
+## 4. [A] Availability: Resource Exhaustion & Missing Rate Controls
 
-* **Vector:** Resource exhaustion and destructive SQL operations.
-* **Impact:** Denial of Service (DoS) and application unresponsiveness.
+* **Vulnerable Endpoint:** `GET /rest/products/search?q=`
+* **Vulnerability Class:** CWE-400 (Uncontrolled Resource Consumption) / CWE-770 (Allocation of Resources Without Limits)
+* **Risk Level:** Medium (Service Degradation & DoS)
 
-### Technical Analysis & Threat Modeling
-* **Compute Exhaustion (ReDoS / Heavy Queries):** Unchecked input concatenation permits injecting complex recursive queries or heavy wildcard searches, causing CPU spikes and blocking the single-threaded Node.js event loop.
-* **Data Destruction Scenario:** If database write permissions allow stacked queries or destructive commands, an attacker could truncate tables or corrupt relational integrity, taking the application offline.
+### Architectural Vulnerability Analysis
+Inspection of the endpoint's response headers and data handling reveals critical architectural omissions:
 
-![Availability Impact Analysis](../images/07_availability_poc.png)
+* **Absence of Rate Limiting:** The response lacks standard throttling headers (`RateLimit-Limit`, `RateLimit-Remaining`, `Retry-After`). The backend does not restrict the frequency of incoming search requests from a single client.
+* **Lack of Server-Side Pagination:** The API does not enforce `LIMIT` or `OFFSET` pagination controls. Submitting unconstrained queries forces the server to serialize and return the entire catalog in a single payload.
+* **Event Loop Blocking:** Because Node.js operates on a single-threaded event loop, continuous processing and JSON serialization of full-table results monopolizes CPU cycles, increasing latency for all concurrent users.
+
+![Availability Analysis PoC](../images/07_availability_poc.png)
+
+### Threat Scenario & Impact
+* **Denial of Service (DoS):** An attacker can automate high-frequency or broad search requests to saturate backend CPU and memory resources.
+* **Database Contention:** Sustained computational load on the single-file SQLite database degrades read/write availability, stalling critical services such as user authentication and order processing.
