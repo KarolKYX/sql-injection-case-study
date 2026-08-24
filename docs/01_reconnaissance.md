@@ -59,5 +59,12 @@ Target architecture components were identified through response header inspectio
 ---
 
 ## 4. Prioritization for Phase 2 (Exploitation)
-1. **Catalog Search (`/rest/products/search?q=`):** Directly embeds input into raw SQL queries without sanitization, making it vulnerable to **UNION-based SQL Injection** for full database extraction.
-2. **User Authentication (`/rest/user/login`):** Processes authentication logic susceptible to **Authentication Bypass** attacks to gain unauthorized administrative privileges.
+
+The identified endpoints will be targeted to demonstrate practical impact across the **CIA Triad**:
+
+1. **Catalog Search (`GET /rest/products/search?q=`):**
+   * **Confidentiality [C]:** Execute a `UNION SELECT` attack to extract user credentials (`email`, `password`) directly from the database into the search results.
+   * **Availability [A]:** Inject heavy compute queries to induce server latency and simulate a Denial of Service (DoS).
+
+2. **User Authentication (`POST /rest/user/login`):**
+   * **Integrity [I]:** Exploit SQL injection (`' OR 1=1--`) to bypass authentication and gain unauthorized administrative access.
