@@ -62,3 +62,7 @@ docker compose up -d
    * Implementation of parameterized queries (Prepared Statements / ORM binding).
    * Enforcement of API rate limiting (`express-rate-limit`) and mandatory server-side pagination (`LIMIT/OFFSET`).
    * Suppression of internal database error messages in production environments.
+
+## Future Improvements
+* **Automated Reconnaissance Script:** Develop a Python-based utility (`requests` / `click`) to automate initial endpoint fingerprinting and baseline response checks.
+* **CI/CD Security Checks:** Integrate dynamic security testing into a GitHub Actions pipeline.
