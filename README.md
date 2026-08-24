@@ -13,7 +13,7 @@ This project presents assessment conducted against the intentionally vulnerable 
 * **Target Application:** OWASP Juice Shop (Containerized via Docker)
 * **Local Endpoint:** `http://localhost:3000`
 * **Assessment Proxy:** Burp Suite Community Edition
-* **Identified Stack:** Node.js, Express, SQLite, Sequelize ORM, JSON Web Tokens (JWT)
+* **Identified Stack:** Node.js, Express, SQLite, JSON Web Tokens (JWT)
 
 ```bash
 # Run target environment locally
@@ -40,6 +40,7 @@ docker run --rm -p 3000:3000 bkimminich/juice-shop
 │   ├── 02_exploitation.md     # Phase 2: Step-by-step CIA Triad exploitation & PoCs
 │   └── 03_remediation.md      # Phase 3: Defensive recommendations & secure code fixes
 ├── images/                    # Burp Suite proof-of-concept captures and logs
+├── docker-compose.yml         # Target lab orchestration configuration
 └── README.md                  # Project overview and executive summary
 ```
 
