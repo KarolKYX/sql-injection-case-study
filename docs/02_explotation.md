@@ -102,20 +102,24 @@ The login endpoint concatenates user input directly into the SQL query without p
 
 ---
 
-## 4. [A] Availability: Resource Exhaustion & Missing Rate Controls
+## 4. [A] Availability: Resource Exhaustion via Missing Rate Controls
 
 * **Vulnerable Endpoint:** `GET /rest/products/search?q=`
-* **Vulnerability Class:** CWE-400 (Uncontrolled Resource Consumption) / CWE-770 (Allocation of Resources Without Limits)
+* **Target Component:** Server compute resources and database concurrency handler
+* **Impact:** Service degradation, database lock contention, and potential Denial of Service (DoS).
 
-### Architectural Vulnerability Analysis
-Inspection of the endpoint's response headers and data handling reveals critical architectural omissions:
+### Technical Execution
+Analysis of the search endpoint's HTTP response headers and backend query processing reveals a total absence of defensive traffic controls.
 
-* **Absence of Rate Limiting:** The response lacks standard throttling headers (`RateLimit-Limit`, `RateLimit-Remaining`, `Retry-After`). The backend does not restrict the frequency of incoming search requests from a single client.
-* **Lack of Server-Side Pagination:** The API does not enforce `LIMIT` or `OFFSET` pagination controls. Submitting unconstrained queries forces the server to serialize and return the entire catalog in a single payload.
-* **Event Loop Blocking:** Because Node.js operates on a single-threaded event loop, continuous processing and JSON serialization of full-table results monopolizes CPU cycles, increasing latency for all concurrent users.
+* **Diagnostic Probe:**
+  ```http
+  GET /rest/products/search?q= HTTP/1.1
+  Host: localhost:3000
+  ```
+* **Observation:** The endpoint responds with `200 OK` and a large payload (`Content-Length: 7814`), completely omitting standard rate-limiting headers (`RateLimit-Limit`, `RateLimit-Remaining`, `Retry-After`) and pagination metadata (`LIMIT`, `OFFSET`).
 
 ![Availability Analysis PoC](../images/07_availability_poc.png)
 
-### Threat Scenario & Impact
-* **Denial of Service (DoS):** An attacker can automate high-frequency or broad search requests to saturate backend CPU and memory resources.
-* **Database Contention:** Sustained computational load on the single-file SQLite database degrades read/write availability, stalling critical services such as user authentication and order processing.
+### Threat Scenario & Architectural Impact
+* **Event Loop Starvation:** Submitting broad or unconstrained queries forces the single-threaded Node.js runtime to serialize the entire catalog table repeatedly, monopolizing CPU cycles and degrading response times for all concurrent users.
+* **Database File Locking:** Sustained high-frequency queries against the SQLite database create read/write contention, stalling backend operations that require write locks (such as user authentication and transaction processing).
