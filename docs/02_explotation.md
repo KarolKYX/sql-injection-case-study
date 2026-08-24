@@ -106,7 +106,6 @@ The login endpoint concatenates user input directly into the SQL query without p
 
 * **Vulnerable Endpoint:** `GET /rest/products/search?q=`
 * **Vulnerability Class:** CWE-400 (Uncontrolled Resource Consumption) / CWE-770 (Allocation of Resources Without Limits)
-* **Risk Level:** Medium (Service Degradation & DoS)
 
 ### Architectural Vulnerability Analysis
 Inspection of the endpoint's response headers and data handling reveals critical architectural omissions:
