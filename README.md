@@ -1,6 +1,6 @@
 # OWASP Juice Shop Security Assessment & CIA Triad Impact
 
-> **Disclaimer:** This repository contains Proof-of-Concept (PoC) materials developed strictly for educational purposes, security research, and vulnerability demonstration in an isolated lab environment. It is not intended for malicious use or unauthorized testing.
+> **Disclaimer:** This repository contains Proof-of-Concept (PoC) materials developed strictly for educational purposes, security research, and vulnerability demonstration in an isolated lab environment. It is not intended for malicious use or unauthorized testing :heavy_exclamation_mark:
 
 ---
 
@@ -63,6 +63,6 @@ docker compose up -d
    * Enforcement of API rate limiting (`express-rate-limit`) and mandatory server-side pagination (`LIMIT/OFFSET`).
    * Suppression of internal database error messages in production environments.
 
-## Future Improvements
+## :microscope: Future Improvements 
 * **Automated Reconnaissance Script:** Develop a Python-based utility (`requests`) to automate initial endpoint discovery and error fuzzing.
 * **DevSecOps CI/CD Integration:** Integrate an automated DAST regression test (e.g., OWASP ZAP / GitHub Actions) to verify SQLi remediations on every build.
