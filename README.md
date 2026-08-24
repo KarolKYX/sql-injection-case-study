@@ -16,8 +16,8 @@ This project presents assessment conducted against the intentionally vulnerable 
 * **Identified Stack:** Node.js, Express, SQLite, JSON Web Tokens (JWT)
 
 ```bash
-# Run target environment locally
-docker run --rm -p 3000:3000 bkimminich/juice-shop
+# Launch the lab environment using Docker Compose
+docker compose up -d
 ```
 
 ---
